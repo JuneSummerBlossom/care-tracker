@@ -55,6 +55,14 @@ var createTaskFormHandler = function(event) {
   // GET TASK NAME DATA FROM FORM
   var taskNameInput = document.querySelector("input[name='task-name']").value;
 
+  // CHECK IF INPUTS ARE EMPTY
+  if (!taskNameInput) {
+    return false;
+  }
+
+  // RESET CREATE TASK FORM
+  createTaskFormE1.reset();
+
   // CREATE TASK DATA OBJECT
   var taskDataObj = {
     name: taskNameInput
