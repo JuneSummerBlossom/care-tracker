@@ -2,10 +2,12 @@
 var taskIdCounter = 0;
 // TASKS CONTAINER
 var tasksContainerE1 = document.querySelector("#tasks-container");
-// NEW TASK FORM
-var newTaskFormE1 = document.querySelector("#new-task-form");
+// CREATE TASK FORM
+var createTaskFormE1 = document.querySelector("#create-task-form");
 // PAGE CONTENT
 var pageContentE1 = document.querySelector("#page-content");
+// TASK DATA ARRAY FOR PERSISTENCE
+var taskDataArray = [];
 
 // CREATE TASK FUNCTION
 var createTaskE1 = function(taskDataObj) {
@@ -33,12 +35,19 @@ var createTaskE1 = function(taskDataObj) {
   // ADD TASK OBJECT TO TASKS CONTAINER
   tasksContainerE1.appendChild(taskE1);
 
+  // ADD ID TO TASK DATA OBJECT
+  taskDataObj.id = taskIdCounter;
+
+  // ADD TASK DATA OBJ TO TASK DATA ARRAY
+  taskDataArray.push(taskDataObj);
+  saveTaskDataArray();
+
   // INCREASE TASK ID COUNTER
   taskIdCounter++;
-}
+};
 
-// NEW TASK FORM HANDLER FUNCTION
-var newTaskFormHandler = function(event) {
+// CREATE TASK FORM HANDLER FUNCTION
+var createTaskFormHandler = function(event) {
 
   // PREVENT PAGE FROM AUTOMATICALLY RELOADING
   event.preventDefault();
@@ -53,7 +62,7 @@ var newTaskFormHandler = function(event) {
 
   // CREATE TASK USING TASK DATA OBJECT
   createTaskE1(taskDataObj);
-}
+};
 
 // CREATE TASK BUTTONS FUNCTION
 var createTaskButtons = function(taskId) {
@@ -71,7 +80,7 @@ var createTaskButtons = function(taskId) {
 
   // RETURN BUTTONS CONTAINER
   return buttonsContainerE1;
-}
+};
 
 // TASK BUTTON HANDLER FUNCTION
 var taskButtonHandler = function(event) {
@@ -84,20 +93,66 @@ var taskButtonHandler = function(event) {
 
   // RUN COMPLETE TASK USING TASK ID
   completeTask(taskId);
-}
+};
 
 // COMPLETE TASK FUNCTION
 var completeTask = function(taskId) {
 
   // FIND TASK WITH MATCHING TASK ID
-  var taskSelected = document.querySelector(".task[task-id='" + taskId + "']");
+  var selectedTask = document.querySelector(".task[task-id='" + taskId + "']");
 
   // REMOVE TASK FROM PAGE
-  taskSelected.remove();
-}
+  selectedTask.remove();
 
-// RUN NEW TASK FORM HANDLER WHEN A TASK IS SUBMITTED
-newTaskFormE1.addEventListener("submit", newTaskFormHandler);
+  // CREATE ARRAY TO HOLD UPDATED TASK DATA ARRAY
+  var updatedTaskDataArray = [];
+
+  // ITERATE THROUGH TASK DATA ARRAY
+  for (var i = 0; i < taskDataArray.length; i++) {
+
+    // ADD TASK DATA TO UPDATED TASK ARRAY UNLESS THE TASK WAS COMPLETED
+    if (taskDataArray[i].id !== parseInt(taskId)) {
+      updatedTaskDataArray.push(taskDataArray[i]);
+    }
+  }
+
+  // ASSIGN UPDATED DATA TO TASK DATA ARRAY AND SAVE
+  taskDataArray = updatedTaskDataArray;
+  saveTaskDataArray();
+};
+
+// SAVE TASK DATA ARRAY FUNCTION
+var saveTaskDataArray = function() {
+  localStorage.setItem("taskDataArray", JSON.stringify(taskDataArray));
+};
+
+// LOAD TASK DATA ARRAY FUNCTION
+var loadTaskDataArray = function() {
+
+  // GET TASK DATA ARRAY FORM LOCAL STORAGE
+  var savedTaskDataArray = localStorage.getItem("taskDataArray");
+
+  // VERIFY IF ANY DATA IS STORED
+  if (!savedTaskDataArray) {
+
+    // NO DATA IS STORED
+    return false;
+  }
+
+  // CONVERT TASK FROM STRING FORMAT BACK INTO AN ARRAY OF OBJECTS
+  savedTaskDataArray = JSON.parse(savedTaskDataArray);
+
+  // ITERATE THROUGH TASK DATA ARRAY AND CREATE EACH TASK
+  for (var i = 0; i < savedTaskDataArray.length; i++) {
+    createTaskE1(savedTaskDataArray[i]);
+  }
+};
+
+// RUN CREATE TASK FORM HANDLER WHEN A TASK IS SUBMITTED
+createTaskFormE1.addEventListener("submit", createTaskFormHandler);
 
 // RUN TASK BUTTON HANDLER WHEN A BUTTON IS CLICKED
 pageContentE1.addEventListener("click", taskButtonHandler);
+
+// RUN LOAD TASK DATA ARRAY FUNCTION WHEN PROGRAM IS STARTED
+loadTaskDataArray();
